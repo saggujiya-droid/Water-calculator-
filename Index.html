@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AquaTrack: Household Water Footprint Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EAF2F0;--card:#fff;--ink:#10222B;--mute:#4B6470;--water:#1B7F9E;--deep:#0C4A63;--line:#CFE0DC;--mark:#B07A00;--soft:#DDEDEA;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0B1A21;--card:#12262F;--ink:#E6F1EF;--mute:#9DB6BE;--water:#4FB3D1;--deep:#7CC8DE;--line:#25404B;--mark:#F2B134;--soft:#1A323C}}
+:root[data-theme="dark"]{--bg:#0B1A21;--card:#12262F;--ink:#E6F1EF;--mute:#9DB6BE;--water:#4FB3D1;--deep:#7CC8DE;--line:#25404B;--mark:#F2B134;--soft:#1A323C}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Figtree,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.5;padding-bottom:84px}
+.wrap{max-width:640px;margin:0 auto;padding:20px 16px}
+h1{font-size:2rem;line-height:1.1;margin:8px 0 6px;font-weight:800;letter-spacing:-.02em;color:var(--deep)}
+.lead{color:var(--mute);margin:0 0 20px}
+.grp{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:6px 16px 10px;margin-bottom:14px}
+.grp h2{font-size:1.05rem;margin:12px 0 4px;font-weight:800}
+.row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.row:first-of-type{border-top:0}
+.row label,.row .lb{flex:1;font-size:.95rem}
+.row small{display:block;color:var(--mute);font-size:.78rem}
+.step{display:flex;align-items:center;gap:6px}
+.step button{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-size:1.2rem;cursor:pointer}
+.step output{min-width:34px;text-align:center;font-weight:800;font-size:1.05rem}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:transparent;color:var(--ink);padding:9px 11px;font:inherit;font-size:.85rem;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--water);color:#fff;font-weight:600}
+button:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+#res{scroll-margin-top:12px}
+.hero{display:flex;gap:18px;align-items:stretch;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.tank{position:relative;width:84px;height:230px;border:3px solid var(--deep);border-top-width:0;border-radius:0 0 16px 16px;background:var(--soft);overflow:hidden;flex:none}
+.fill{position:absolute;left:0;right:0;bottom:0;background:var(--water);transition:height .5s ease;height:0}
+.norm{position:absolute;left:0;right:0;bottom:50%;border-top:2px dashed var(--mark)}
+.normlb{position:absolute;left:92px;bottom:calc(50% - 9px);font-size:.72rem;color:var(--mark);font-weight:600;white-space:nowrap}
+.tankwrap{position:relative;flex:none;width:84px}
+.big{font-size:2.8rem;font-weight:800;line-height:1;color:var(--deep)}
+.badge{display:inline-block;margin-top:8px;padding:4px 12px;border-radius:99px;background:var(--water);color:#fff;font-weight:600;font-size:.85rem}
+.hero p{margin:8px 0 0;color:var(--mute);font-size:.9rem}
+.bar{margin:8px 0}
+.bar div.t{display:flex;justify-content:space-between;font-size:.88rem}
+.bar i{display:block;height:8px;border-radius:5px;background:var(--water);margin-top:3px;min-width:2px;transition:width .4s}
+.bar.v i{background:var(--deep)}
+.tips{margin:6px 0 0;padding-left:20px}
+.tips li{margin:8px 0}
+.tips b{color:var(--deep)}
+.btns{display:flex;gap:10px;margin:14px 0}
+.btns button{flex:1;padding:12px;border-radius:10px;border:1px solid var(--water);background:var(--water);color:#fff;font:inherit;font-weight:600;cursor:pointer}
+.btns button.alt{background:transparent;color:var(--ink);border-color:var(--line)}
+.note{font-size:.78rem;color:var(--mute)}
+.bottom{position:fixed;left:0;right:0;bottom:0;background:var(--deep);color:#fff;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:space-around;align-items:center;gap:8px;text-decoration:none}
+:root[data-theme="dark"] .bottom,:root:not([data-theme="light"]) .bottom{}
+.bottom div{text-align:center;font-size:.75rem}
+.bottom b{display:block;font-size:1.2rem}
+.bottom a{color:#fff;font-weight:600;font-size:.85rem}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>How much water does your day use?</h1>
+  <p class="lead">Answer a few questions about a normal day. Your estimate updates as you tap.</p>
+  <div id="form"></div>
+  <div id="res">
+    <div class="hero">
+      <div class="tankwrap"><div class="tank"><div class="fill" id="fill"></div><div class="norm"></div></div><span class="normlb">135 L norm</span></div>
+      <div style="padding-left:56px;flex:1">
+        <div class="big"><span id="dTot">0</span> L</div>
+        <div style="font-size:.85rem;color:var(--mute)">direct use per person per day</div>
+        <span class="badge" id="badge">Water Saver</span>
+        <p id="cmp"></p>
+      </div>
+    </div>
+    <div class="grp"><h2>Where your direct water goes</h2><div id="dBars"></div></div>
+    <div class="grp"><h2>Hidden water in food and clothes</h2>
+      <p class="note" style="margin:6px 0 0">Total: <b id="vTot">0</b> L per person per day</p>
+      <div id="vBars"></div></div>
+    <div class="grp"><h2>Your top ways to save</h2><ol class="tips" id="tips"></ol>
+      <p class="note" id="saveTot"></p></div>
+    <div class="btns"><button id="share">Copy my result</button><button class="alt" id="reset">Start over</button></div>
+    <p class="note">Estimates use average values: shower 9 L/min, bucket bath 18 L, flush 8 L (dual 4 L), washing machine 60 L/load, hand wash 40 L/load, rice 2,500 L/kg, wheat 1,800 L/kg, vegetables 300 L/kg, milk 1,000 L/L, egg 200 L, chicken 4,300 L/kg, mutton 8,700 L/kg, tea 27 L/cup, coffee 140 L/cup, cotton T-shirt 2,700 L. Real use varies by home and region. The 135 L norm is the commonly cited urban supply benchmark in India.</p>
+  </div>
+</div>
+<div class="bottom"><div><b id="bD">0 L</b>direct use</div><div><b id="bV">0 L</b>food and goods</div><a href="#res">See results</a></div>
+
+<script>
+var G=[
+{t:"Your home",i:[{k:"people",l:"People in your home",min:1,max:12,v:4}]},
+{t:"Bathing",i:[
+ {k:"bathType",l:"How you bathe",o:[["shower","Shower"],["bucket","Bucket"]],v:"shower"},
+ {k:"baths",l:"Baths per person per day",min:0,max:3,v:1},
+ {k:"showerMin",l:"Minutes per shower",min:1,max:30,v:8,show:function(){return S.bathType==="shower"}}]},
+{t:"Toilet and brushing",i:[
+ {k:"flushes",l:"Flushes per person per day",min:0,max:15,v:5},
+ {k:"flushType",l:"Flush type",o:[["std","Standard"],["dual","Dual"]],v:"std"},
+ {k:"brush",l:"Times brushing per day",min:0,max:4,v:2},
+ {k:"brushMode",l:"While brushing",o:[["tap","Tap on"],["mug","Mug"]],v:"tap"}]},
+{t:"Laundry and dishes",i:[
+ {k:"loads",l:"Laundry loads per week",s:"whole home",min:0,max:30,v:4},
+ {k:"laundryMode",l:"How you wash clothes",o:[["machine","Machine"],["hand","By hand"]],v:"machine"},
+ {k:"dishes",l:"Dishwashing rounds per day",s:"whole home",min:0,max:8,v:3},
+ {k:"dishMode",l:"How you wash dishes",o:[["hand","By hand"],["dw","Dishwasher"]],v:"hand"}]},
+{t:"Drinking and cooking",i:[{k:"cook",l:"Litres per person per day",s:"drinking, cooking, cleaning veg",min:0,max:20,v:5}]},
+{t:"Food and drink (per person)",i:[
+ {k:"rice",l:"Rice meals per week",min:0,max:21,v:7},
+ {k:"roti",l:"Roti or wheat meals per week",min:0,max:21,v:7},
+ {k:"veg",l:"Vegetable servings per day",min:0,max:6,v:2},
+ {k:"milk",l:"Glasses of milk or curd per day",min:0,max:5,v:1},
+ {k:"eggs",l:"Eggs per week",min:0,max:21,v:3},
+ {k:"chicken",l:"Chicken meals per week",min:0,max:14,v:2},
+ {k:"mutton",l:"Mutton meals per week",min:0,max:14,v:0},
+ {k:"tea",l:"Cups of tea per day",min:0,max:8,v:2},
+ {k:"coffee",l:"Cups of coffee per day",min:0,max:8,v:0}]},
+{t:"Clothes",i:[{k:"tees",l:"New clothes per year",s:"count each shirt or kurta as one",min:0,max:60,v:10}]}
+];
+var S={},rows={};
+function defaults(){G.forEach(function(g){g.i.forEach(function(x){S[x.k]=x.v})})}
+function build(){
+ var f=document.getElementById("form");f.innerHTML="";
+ G.forEach(function(g){
+  var d=document.createElement("div");d.className="grp";
+  d.innerHTML="<h2>"+g.t+"</h2>";
+  g.i.forEach(function(x){
+   var r=document.createElement("div");r.className="row";rows[x.k]=r;
+   var lab="<div class='lb'>"+x.l+(x.s?"<small>"+x.s+"</small>":"")+"</div>";
+   if(x.o){
+    r.innerHTML=lab+"<div class='seg'>"+x.o.map(function(o){return "<button data-k='"+x.k+"' data-v='"+o[0]+"'>"+o[1]+"</button>"}).join("")+"</div>";
+   }else{
+    r.innerHTML=lab+"<div class='step'><button data-k='"+x.k+"' data-d='-1' aria-label='Decrease'>−</button><output id='o_"+x.k+"'></output><button data-k='"+x.k+"' data-d='1' aria-label='Increase'>+</button></div>";
+   }
+   d.appendChild(r);
+  });
+  f.appendChild(d);
+ });
+}
+function item(k){var r;G.forEach(function(g){g.i.forEach(function(x){if(x.k===k)r=x})});return r}
+document.addEventListener("click",function(e){
+ var b=e.target.closest("button[data-k]");if(!b)return;
+ var k=b.dataset.k,x=item(k);
+ if(b.dataset.v!==undefined){S[k]=b.dataset.v}
+ else{S[k]=Math.max(x.min,Math.min(x.max,S[k]+Number(b.dataset.d)))}
+ update();
+});
+function fmt(n){return Math.round(n).toLocaleString("en-IN")}
+function bars(el,arr,cls){
+ var m=Math.max.apply(null,arr.map(function(a){return a[1]}).concat([1]));
+ el.innerHTML=arr.filter(function(a){return a[1]>0.5}).map(function(a){
+  return "<div class='bar "+cls+"'><div class='t'><span>"+a[0]+"</span><b>"+fmt(a[1])+" L</b></div><i style='width:"+Math.max(2,a[1]/m*100)+"%'></i></div>"}).join("")||"<p class='note'>Nothing to show yet.</p>";
+}
+var last="";
+function update(){
+ var p=S.people,sh=S.bathType==="shower";
+ var bath=S.baths*(sh?S.showerMin*9:18);
+ var toilet=S.flushes*(S.flushType==="dual"?4:8);
+ var brush=S.brush*(S.brushMode==="tap"?6:1);
+ var laundry=S.loads/7*(S.laundryMode==="machine"?60:40)/p;
+ var dish=S.dishes*(S.dishMode==="hand"?30:12)/p;
+ var cook=S.cook;
+ var direct=bath+toilet+brush+laundry+dish+cook;
+ var grains=S.rice/7*375+S.roti/7*180;
+ var vegdairy=S.veg*45+S.milk*250;
+ var meat=S.eggs/7*200+S.chicken/7*645+S.mutton/7*1305;
+ var drinks=S.tea*27+S.coffee*140;
+ var clothes=S.tees*2700/365;
+ var virt=grains+vegdairy+meat+drinks+clothes;
+ G.forEach(function(g){g.i.forEach(function(x){
+  if(x.o){rows[x.k].querySelectorAll("button").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.v===S[x.k]))})}
+  else{document.getElementById("o_"+x.k).textContent=S[x.k]}
+  if(x.show)rows[x.k].style.display=x.show()?"":"none";
+ })});
+ document.getElementById("dTot").textContent=fmt(direct);
+ document.getElementById("fill").style.height=Math.min(direct/270,1)*100+"%";
+ var bd=document.getElementById("badge");
+ bd.textContent=direct<=100?"Water Saver":direct<=135?"Within the norm":"High use";
+ var diff=Math.abs(direct-135);
+ document.getElementById("cmp").textContent=direct<=135?"You use about "+fmt(diff)+" L less than the 135 L norm. Your home of "+p+" uses about "+fmt(direct*p)+" L a day.":"You use about "+fmt(diff)+" L more than the 135 L norm. Your home of "+p+" uses about "+fmt(direct*p)+" L a day.";
+ bars(document.getElementById("dBars"),[["Bathing",bath],["Toilet",toilet],["Brushing",brush],["Laundry",laundry],["Dishes",dish],["Drinking and cooking",cook]],"");
+ document.getElementById("vTot").textContent=fmt(virt);
+ bars(document.getElementById("vBars"),[["Rice and wheat",grains],["Vegetables and dairy",vegdairy],["Eggs and meat",meat],["Tea and coffee",drinks],["Clothes",clothes]],"v");
+ var t=[];
+ if(sh&&S.showerMin>5&&S.baths>0)t.push(["Cut each shower to 5 minutes",(S.showerMin-5)*9*S.baths]);
+ if(sh&&S.baths>0&&S.showerMin*9>18)t.push(["Switch to a bucket bath",(S.showerMin*9-18)*S.baths]);
+ if(S.brushMode==="tap"&&S.brush>0)t.push(["Use a mug while brushing",5*S.brush]);
+ if(S.flushType==="std"&&S.flushes>0)t.push(["Fit a dual-flush cistern",4*S.flushes]);
+ if(S.dishMode==="hand"&&S.dishes>0)t.push(["Run a dishwasher with full loads",18*S.dishes/p]);
+ if(S.laundryMode==="hand"&&S.loads>0)t.push(["Wash with a full-load machine",0]);
+ if(S.mutton>0)t.push(["Swap one mutton meal a week for dal or vegetables",(1305-100)/7]);
+ if(S.chicken>0)t.push(["Swap one chicken meal a week for dal or vegetables",(645-100)/7]);
+ if(S.coffee>0)t.push(["Swap one coffee a day for tea",113]);
+ if(S.tees>0)t.push(["Buy one fewer new garment a year",2700/365]);
+ t=t.filter(function(a){return a[1]>0.5}).sort(function(a,b){return b[1]-a[1]}).slice(0,5);
+ document.getElementById("tips").innerHTML=t.length?t.map(function(a){return "<li>"+a[0]+": saves about <b>"+fmt(a[1])+" L</b> a day</li>"}).join(""):"<li>You are already doing great. Share the calculator with a friend.</li>";
+ var tot=t.reduce(function(s,a){return s+a[1]},0);
+ document.getElementById("saveTot").textContent=t.length?"Together these could save about "+fmt(tot)+" L per person per day.":"";
+ document.getElementById("bD").textContent=fmt(direct)+" L";
+ document.getElementById("bV").textContent=fmt(virt)+" L";
+ last="My daily water footprint: "+fmt(direct)+" L direct use ("+bd.textContent+") and "+fmt(virt)+" L hidden in food and clothes, per person. Can you beat it? Try AquaTrack and save 20 L a day.";
+}
+document.getElementById("share").addEventListener("click",function(){
+ var b=this;
+ function done(m){b.textContent=m;setTimeout(function(){b.textContent="Copy my result"},2000)}
+ try{navigator.clipboard.writeText(last).then(function(){done("Copied")},function(){done("Copy failed")})}catch(e){done("Copy failed")}
+});
+document.getElementById("reset").addEventListener("click",function(){defaults();update()});
+defaults();build();update();
+</script>
+</body>
+</html>
